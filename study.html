@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="study_styles.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quiz</title>
+  </head>
+  <body>
+    <h1>Quiz</h1>
+    <div id="quiz-container"></div>
+
+    <script>
+      async function loadQuestions() {
+        try {
+          const response = await fetch("questions.json");
+          const questions = await response.json();
+          displayQuestions(questions);
+        } catch (error) {
+          console.error("Błąd ładowania pytań:", error);
+        }
+      }
+
+      function displayQuestions(questions) {
+        const container = document.getElementById("quiz-container");
+        container.innerHTML = "";
+
+        questions.forEach((q, index) => {
+          const questionDiv = document.createElement("div");
+          questionDiv.classList.add("question-container");
+
+          questionDiv.innerHTML = `
+                    <div class="question">${index + 1}. ${q.question}</div>
+                    <input type="text" id="answer-${index}" placeholder="Wpisz odpowiedź">
+                    <button onclick="checkAnswer(${index}, '${q.answer.toLowerCase()}')">Sprawdź</button>
+                    <button onclick="showAnswer(${index}, '${
+            q.answer
+          }')">Pokaż odpowiedź</button>
+                    <div class="result" id="result-${index}"></div>`;
+
+          container.appendChild(questionDiv);
+
+          document
+            .getElementById(`answer-${index}`)
+            .addEventListener("keypress", function (event) {
+              if (event.key === "Enter") {
+                event.preventDefault();
+                checkAnswer(index, q.answer.toLowerCase());
+              }
+            });
+        });
+      }
+
+      function checkAnswer(index, correctAnswer) {
+        const userAnswer = document
+          .getElementById(`answer-${index}`)
+          .value.trim()
+          .toLowerCase();
+        const resultDiv = document.getElementById(`result-${index}`);
+
+        if (userAnswer === correctAnswer) {
+          resultDiv.innerHTML =
+            "<span style='color: green;'>Prawidłowa odpowiedź!</span>";
+        } else {
+          resultDiv.innerHTML =
+            "<span style='color: red;'>Niepoprawna odpowiedź. Spróbuj ponownie.</span>";
+        }
+      }
+
+      function showAnswer(index, correctAnswer) {
+        const resultDiv = document.getElementById(`result-${index}`);
+        // resultDiv.innerHTML = `<span style='color: blue;'> ${correctAnswer}</span>`;
+        resultDiv.innerHTML = `<span style='color: blue;'>${escapeHtml(
+          correctAnswer
+        )}</span>`;
+      }
+
+      window.onload = loadQuestions;
+
+      function escapeHtml(str) {
+        return str.replace(/[&<>"']/g, function (match) {
+          const entityMap = {
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&apos;",
+          };
+          return entityMap[match];
+        });
+      }
+    </script>
+  </body>
+</html>
